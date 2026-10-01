@@ -1,0 +1,1721 @@
+<!DOCTYPE html>
+<html lang="pt-BR">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0, viewport-fit=cover">
+    <meta name="apple-mobile-web-app-capable" content="yes">
+    <meta name="apple-mobile-web-app-status-bar-style" content="black-translucent">
+    <meta name="theme-color" content="#1a3d5c">
+    <title>Inventário de Estoque</title>
+    <style>
+        * {
+            margin: 0;
+            padding: 0;
+            box-sizing: border-box;
+        }
+
+        :root {
+            --primary: #1a3d5c;
+            --primary-dark: #0f2636;
+            --primary-light: #2d5a7f;
+            --success: #27ae60;
+            --danger: #e74c3c;
+            --warning: #f39c12;
+            --gray-light: #ecf0f1;
+            --gray-dark: #34495e;
+            --text: #2c3e50;
+            --border-radius: 8px;
+            --transition: all 0.3s ease;
+        }
+
+        html, body {
+            height: 100%;
+            width: 100%;
+            font-family: -apple-system, BlinkMacSystemFont, 'Segoe UI', Roboto, Oxygen, Ubuntu, Cantarell, sans-serif;
+            background-color: #f8f9fa;
+            color: var(--text);
+            overflow: hidden;
+        }
+
+        body {
+            display: flex;
+            flex-direction: column;
+        }
+
+        /* CONTAINER PRINCIPAL */
+        .app-container {
+            flex: 1;
+            display: flex;
+            flex-direction: column;
+            overflow: hidden;
+        }
+
+        /* HEADER - DESKTOP FIRST */
+        .header {
+            background: linear-gradient(135deg, var(--primary) 0%, var(--primary-dark) 100%);
+            color: white;
+            padding: 24px 32px;
+            box-shadow: 0 2px 8px rgba(0,0,0,0.1);
+            text-align: center;
+        }
+
+        .header h1 {
+            font-size: 32px;
+            font-weight: 700;
+            letter-spacing: -0.5px;
+        }
+
+        .header p {
+            font-size: 16px;
+            opacity: 0.9;
+            margin-top: 6px;
+        }
+
+        /* CONTENT */
+        .content {
+            flex: 1;
+            overflow-y: auto;
+            padding: 32px;
+            display: flex;
+            flex-direction: column;
+            gap: 24px;
+        }
+
+        /* TELA - Esconder/Mostrar */
+        .screen {
+            display: none;
+            flex-direction: column;
+            gap: 24px;
+        }
+
+        .screen.active {
+            display: flex;
+        }
+
+        /* TELA PRINCIPAL */
+        .screen-home {
+            justify-content: center;
+            text-align: center;
+            gap: 32px;
+        }
+
+        .screen-home .logo {
+            font-size: 80px;
+            margin-bottom: 16px;
+        }
+
+        .screen-home h2 {
+            font-size: 36px;
+            color: var(--text);
+            margin-bottom: 12px;
+        }
+
+        /* CARD INFO */
+        .info-card {
+            background: white;
+            border-left: 4px solid var(--primary);
+            padding: 20px;
+            border-radius: var(--border-radius);
+            box-shadow: 0 2px 4px rgba(0,0,0,0.05);
+            font-size: 16px;
+            line-height: 1.7;
+            color: var(--gray-dark);
+        }
+
+        /* BOTÕES - DESKTOP FIRST */
+        .btn {
+            padding: 20px 28px;
+            border: none;
+            border-radius: var(--border-radius);
+            font-size: 18px;
+            font-weight: 600;
+            cursor: pointer;
+            transition: var(--transition);
+            text-transform: uppercase;
+            letter-spacing: 0.5px;
+            box-shadow: 0 2px 8px rgba(0,0,0,0.1);
+            display: flex;
+            align-items: center;
+            justify-content: center;
+            gap: 16px;
+            min-height: 72px;
+            width: 100%;
+        }
+
+        .btn:active {
+            transform: scale(0.98);
+        }
+
+        .btn-primary {
+            background: linear-gradient(135deg, var(--primary) 0%, var(--primary-light) 100%);
+            color: white;
+        }
+
+        .btn-primary:hover {
+            box-shadow: 0 4px 16px rgba(26, 61, 92, 0.4);
+        }
+
+        .btn-success {
+            background: linear-gradient(135deg, var(--success) 0%, #229954 100%);
+            color: white;
+        }
+
+        .btn-success:hover {
+            box-shadow: 0 4px 16px rgba(39, 174, 96, 0.4);
+        }
+
+        .btn-danger {
+            background: linear-gradient(135deg, var(--danger) 0%, #c0392b 100%);
+            color: white;
+        }
+
+        .btn-secondary {
+            background: white;
+            color: var(--primary);
+            border: 2px solid var(--primary);
+            box-shadow: none;
+        }
+
+        .btn-secondary:hover {
+            background: var(--gray-light);
+        }
+
+        .btn-small {
+            padding: 16px 20px;
+            font-size: 16px;
+            min-height: 60px;
+            flex: 1;
+        }
+
+        .btn-icon {
+            font-size: 24px;
+        }
+
+        .btn-group {
+            display: flex;
+            gap: 16px;
+            width: 100%;
+        }
+
+        /* FORMULÁRIOS */
+        .form-group {
+            display: flex;
+            flex-direction: column;
+            gap: 10px;
+        }
+
+        .form-group label {
+            font-weight: 600;
+            font-size: 16px;
+            color: var(--text);
+        }
+
+        .form-group input,
+        .form-group textarea,
+        .form-group select {
+            padding: 16px;
+            border: 1px solid #bdc3c7;
+            border-radius: var(--border-radius);
+            font-family: inherit;
+            font-size: 16px;
+            color: var(--text);
+        }
+
+        .form-group input:focus,
+        .form-group textarea:focus,
+        .form-group select:focus {
+            outline: none;
+            border-color: var(--primary);
+            box-shadow: 0 0 0 2px rgba(26,61,92,0.1);
+        }
+
+        /* MODAL BACKDROP */
+        .modal-backdrop {
+            display: none;
+            position: fixed;
+            top: 0;
+            left: 0;
+            right: 0;
+            bottom: 0;
+            background: rgba(0,0,0,0.5);
+            z-index: 999;
+            align-items: center;
+            justify-content: center;
+            padding: 20px;
+        }
+
+        .modal-backdrop.active {
+            display: flex;
+        }
+
+        .modal {
+            background: white;
+            border-radius: 12px;
+            padding: 32px;
+            max-width: 600px;
+            width: 100%;
+            max-height: 90vh;
+            overflow-y: auto;
+            box-shadow: 0 8px 32px rgba(0,0,0,0.2);
+        }
+
+        .modal h2 {
+            font-size: 26px;
+            margin-bottom: 20px;
+            color: var(--text);
+        }
+
+        /* LISTA */
+        .list {
+            display: flex;
+            flex-direction: column;
+            gap: 12px;
+        }
+
+        .list-item {
+            background: white;
+            padding: 16px;
+            border-radius: var(--border-radius);
+            border-left: 4px solid var(--primary);
+            box-shadow: 0 1px 3px rgba(0,0,0,0.08);
+            font-size: 16px;
+            cursor: pointer;
+            transition: var(--transition);
+        }
+
+        .list-item:hover {
+            box-shadow: 0 4px 12px rgba(0,0,0,0.12);
+            transform: translateX(4px);
+        }
+
+        .list-item-content {
+            display: flex;
+            flex-direction: column;
+            gap: 8px;
+        }
+
+        .list-item-title {
+            font-weight: 700;
+            font-size: 18px;
+            color: var(--text);
+        }
+
+        .list-item-meta {
+            font-size: 14px;
+            color: #7f8c8d;
+        }
+
+        /* CONTROLES DE QUANTIDADE */
+        .qty-control {
+            display: flex;
+            gap: 8px;
+            align-items: center;
+        }
+
+        .qty-btn {
+            width: 44px;
+            height: 44px;
+            border: 1px solid #bdc3c7;
+            background: white;
+            border-radius: 6px;
+            font-size: 20px;
+            font-weight: 700;
+            cursor: pointer;
+            transition: var(--transition);
+        }
+
+        .qty-btn:hover {
+            background: #f0f0f0;
+        }
+
+        .qty-btn.delete {
+            background: #ffe5e5;
+            color: var(--danger);
+        }
+
+        .qty-input {
+            width: 70px;
+            text-align: center;
+            font-size: 18px;
+            font-weight: 700;
+            padding: 8px 4px;
+            border: 1px solid #bdc3c7;
+            border-radius: 6px;
+        }
+
+        .product-item {
+            flex-direction: column;
+            align-items: stretch;
+            gap: 16px;
+            cursor: default;
+        }
+
+        .product-item:active {
+            background: white;
+        }
+
+        .product-row-bottom {
+            display: flex;
+            justify-content: space-between;
+            align-items: center;
+        }
+
+        /* EMPTY STATE */
+        .empty-state {
+            text-align: center;
+            padding: 60px 20px;
+            color: #7f8c8d;
+        }
+
+        .empty-state-icon {
+            font-size: 64px;
+            margin-bottom: 16px;
+        }
+
+        .empty-state p {
+            font-size: 18px;
+            line-height: 1.6;
+        }
+
+        /* STATUS BAR */
+        .status-bar {
+            display: flex;
+            justify-content: space-around;
+            background: var(--primary);
+            color: white;
+            padding: 12px;
+            font-size: 12px;
+            text-align: center;
+        }
+
+        .status-item {
+            flex: 1;
+        }
+
+        .status-value {
+            font-size: 20px;
+            font-weight: 700;
+        }
+
+        .status-label {
+            font-size: 11px;
+            opacity: 0.8;
+        }
+
+        /* SCROLLBAR */
+        .content::-webkit-scrollbar,
+        .modal::-webkit-scrollbar {
+            width: 8px;
+        }
+
+        .content::-webkit-scrollbar-track,
+        .modal::-webkit-scrollbar-track {
+            background: transparent;
+        }
+
+        .content::-webkit-scrollbar-thumb,
+        .modal::-webkit-scrollbar-thumb {
+            background: #bdc3c7;
+            border-radius: 4px;
+        }
+
+        /* ANIMAÇÕES */
+        @keyframes slideIn {
+            from {
+                opacity: 0;
+                transform: translateY(20px);
+            }
+            to {
+                opacity: 1;
+                transform: translateY(0);
+            }
+        }
+
+        .screen.active {
+            animation: slideIn 0.3s ease;
+        }
+
+        /* MODAL NÃO CADASTRADO - ESTILOS ESPECÍFICOS */
+        .modal-unknown-header {
+            display: flex;
+            align-items: center;
+            gap: 16px;
+            margin-bottom: 24px;
+        }
+
+        .modal-unknown-icon {
+            font-size: 48px;
+        }
+
+        .modal-unknown-header h2 {
+            margin: 0;
+        }
+
+        .modal-code-display {
+            background: #f9f9f9;
+            padding: 20px;
+            border-radius: 8px;
+            margin-bottom: 20px;
+            text-align: center;
+            border: 2px solid #ddd;
+        }
+
+        .modal-code-display .code {
+            font-size: 24px;
+            font-weight: 700;
+            color: var(--primary);
+            font-family: 'Courier New', monospace;
+        }
+
+        .modal-code-display .desc {
+            font-size: 14px;
+            color: #7f8c8d;
+            margin-top: 8px;
+        }
+
+        .modal-note {
+            background: #e8f4f8;
+            padding: 16px;
+            border-left: 4px solid var(--primary);
+            margin: 20px 0;
+            border-radius: 6px;
+            font-size: 14px;
+            color: #555;
+        }
+
+        .modal-footer {
+            display: flex;
+            gap: 12px;
+            margin-top: 24px;
+            justify-content: flex-end;
+        }
+
+        .modal-footer .btn-modal {
+            padding: 12px 20px;
+            font-size: 14px;
+            min-height: auto;
+            width: auto;
+            flex: 1;
+            max-width: 200px;
+        }
+
+        .unknown-product-badge {
+            display: inline-block;
+            background: #fff3cd;
+            color: #856404;
+            padding: 4px 8px;
+            border-radius: 4px;
+            font-size: 12px;
+            font-weight: 600;
+            margin-left: 8px;
+        }
+    </style>
+</head>
+<body>
+    <div class="app-container">
+        <div class="header">
+            <h1>📦 Inventário</h1>
+            <p>Sistema de Contagem de Estoque</p>
+        </div>
+
+        <div class="content">
+            <!-- TELA: HOME -->
+            <div id="screen-home" class="screen screen-home active">
+                <div class="logo">📊</div>
+                <div>
+                    <h2>Bem-vindo!</h2>
+                    <p style="font-size: 18px; color: #7f8c8d;">Sistema de inventário simples e rápido</p>
+                </div>
+
+                <button class="btn btn-primary btn-icon" onclick="goToNewInventory()">
+                    ➕ Novo Inventário
+                </button>
+
+                <button class="btn btn-success btn-icon" id="btn-continue" onclick="continuarInventario()" style="display: none;">
+                    ▶️ Continuar Inventário
+                </button>
+
+                <button class="btn btn-secondary btn-icon" onclick="goToHistory()">
+                    📋 Inventários Anteriores
+                </button>
+
+                <button class="btn btn-secondary btn-icon" onclick="triggerImportProducts()">
+                    📥 Importar Cadastro de Produtos
+                </button>
+                <input type="file" id="import-products-file" accept=".csv,.xlsx,.xls" style="display:none" onchange="handleImportProductsFile(event)">
+
+                <div class="info-card" id="product-db-info" style="display: none;"></div>
+
+                <div class="info-card">
+                    <strong>💡 Dica:</strong> Use a câmera para ler códigos de barras ou conecte um leitor Bluetooth/USB.
+                </div>
+            </div>
+
+            <!-- TELA: NOVO INVENTÁRIO -->
+            <div id="screen-new" class="screen">
+                <h2>➕ Novo Inventário</h2>
+
+                <div class="form-group">
+                    <label>Nome do Inventário</label>
+                    <input type="text" id="inv-name" placeholder="Ex: Inventário 30/09/2026" maxlength="60">
+                </div>
+
+                <div class="form-group">
+                    <label>Setores (um por linha)</label>
+                    <textarea id="inv-sectors" placeholder="Setor 1&#10;Setor 2&#10;Vitrine&#10;Estoque" style="padding: 16px; border: 1px solid #bdc3c7; border-radius: 8px; font-family: inherit; font-size: 16px; min-height: 140px; resize: vertical;"></textarea>
+                </div>
+
+                <div class="info-card">
+                    💬 Você poderá adicionar mais setores depois se necessário.
+                </div>
+
+                <button class="btn btn-success" onclick="criarInventario()">✓ Criar e Começar</button>
+                <button class="btn btn-secondary" onclick="goHome()">← Cancelar</button>
+            </div>
+
+            <!-- TELA: CONTAGEM -->
+            <div id="screen-counting" class="screen">
+                <div style="background: var(--primary); color: white; padding: 24px; border-radius: 8px; margin-bottom: 12px;">
+                    <div style="font-size: 18px; font-weight: 600; margin-bottom: 12px;">SETOR ATUAL</div>
+                    <div style="font-size: 36px; font-weight: 700;" id="current-sector">-</div>
+                </div>
+
+                <div class="form-group">
+                    <label>Código de Barras</label>
+                    <input type="text" id="barcode-input" placeholder="Escanear código ou digitar..." autocomplete="off" style="font-size: 18px; padding: 18px;">
+                </div>
+
+                <div class="btn-group">
+                    <button class="btn btn-secondary btn-small" onclick="showCameraModal()">📷 CÂMERA</button>
+                    <button class="btn btn-warning btn-small" onclick="showSectorModal()">🔀 TROCAR SETOR</button>
+                </div>
+
+                <div style="background: #f9f9f9; padding: 20px; border-radius: 8px; border: 2px solid #ddd;">
+                    <div style="font-size: 14px; color: #7f8c8d; margin-bottom: 12px;">Último Produto Lido</div>
+                    <div style="font-size: 20px; font-weight: 700; color: var(--primary); margin-bottom: 6px;" id="last-product">-</div>
+                </div>
+
+                <div class="btn-group">
+                    <button class="btn btn-secondary btn-small" onclick="goToViewSector()">📋 VER LISTA</button>
+                    <button class="btn btn-secondary btn-small" onclick="goToSummary()">📊 RESUMO</button>
+                </div>
+
+                <div id="status-bar" class="status-bar">
+                    <div class="status-item">
+                        <div class="status-value" id="status-skus">0</div>
+                        <div class="status-label">SKUs</div>
+                    </div>
+                    <div class="status-item">
+                        <div class="status-value" id="status-total">0</div>
+                        <div class="status-label">Peças</div>
+                    </div>
+                    <div class="status-item">
+                        <div class="status-value" id="status-sectors">0</div>
+                        <div class="status-label">Setores</div>
+                    </div>
+                </div>
+            </div>
+
+            <!-- TELA: VER SETOR -->
+            <div id="screen-view-sector" class="screen">
+                <h2>📋 Produtos do Setor: <span id="view-sector-name">-</span></h2>
+
+                <div class="form-group">
+                    <input type="text" id="sector-search" placeholder="🔍 Buscar código..." oninput="renderViewSector()">
+                </div>
+
+                <div id="sector-products-list" class="list"></div>
+
+                <button class="btn btn-secondary" onclick="goToCountingFromView()">← Voltar à Contagem</button>
+            </div>
+
+            <!-- TELA: RESUMO GERAL -->
+            <div id="screen-summary" class="screen">
+                <h2>📊 Resumo Geral</h2>
+                <div id="summary-list" class="list"></div>
+
+                <div class="info-card" id="summary-total"></div>
+
+                <div class="btn-group">
+                    <button class="btn btn-secondary btn-small" onclick="exportDetailedCSV()">⬇️ Detalhado</button>
+                    <button class="btn btn-secondary btn-small" onclick="exportConsolidatedCSV()">⬇️ Consolidado</button>
+                </div>
+
+                <button class="btn btn-success btn-icon" onclick="exportExcel()">
+                    📗 Exportar Excel (.xlsx)
+                </button>
+
+                <button class="btn btn-secondary" onclick="goToCountingFromView()">← Voltar à Contagem</button>
+            </div>
+
+            <!-- TELA: HISTÓRICO -->
+            <div id="screen-history" class="screen">
+                <h2>📋 Inventários Anteriores</h2>
+                <div id="history-list" class="list"></div>
+                <button class="btn btn-secondary" onclick="goHome()">← Voltar</button>
+            </div>
+        </div>
+    </div>
+
+    <!-- MODAL: TROCAR SETOR -->
+    <div id="modal-sector" class="modal-backdrop">
+        <div class="modal">
+            <h2>Selecionar Setor</h2>
+            <div id="sector-list" class="list" style="margin-bottom: 20px;"></div>
+            <button class="btn btn-success btn-icon" onclick="criarNovoSetor()">➕ Novo Setor</button>
+            <button class="btn btn-secondary" onclick="closeSectorModal()">← Fechar</button>
+        </div>
+    </div>
+
+    <!-- MODAL: CÂMERA -->
+    <div id="modal-camera" class="modal-backdrop">
+        <div class="modal" style="padding: 20px;">
+            <h2>📷 Escanear Código</h2>
+            <div style="position: relative; background: #000; border-radius: 8px; overflow: hidden; margin-bottom: 16px;">
+                <video id="camera-video" style="width: 100%; display: block; max-height: 50vh;" playsinline muted></video>
+                <div style="position: absolute; top: 50%; left: 8%; right: 8%; height: 2px; background: #e74c3c; transform: translateY(-50%); box-shadow: 0 0 6px rgba(231,76,60,0.8);"></div>
+            </div>
+            <div id="camera-status" style="text-align:center; padding: 12px 0 16px; font-size: 16px; color: #7f8c8d;">Aponte a câmera para o código de barras</div>
+            <div class="btn-group" style="margin-bottom: 12px;">
+                <button class="btn btn-secondary btn-small" id="btn-torch" onclick="toggleTorch()" style="display: none;">🔦 Lanterna</button>
+            </div>
+            <button class="btn btn-secondary" onclick="closeCameraModal()">✕ Fechar Câmera</button>
+        </div>
+    </div>
+
+    <!-- MODAL: PRODUTO NÃO CADASTRADO (NOVO) -->
+    <div id="modal-unknown-product" class="modal-backdrop">
+        <div class="modal">
+            <div class="modal-unknown-header">
+                <span class="modal-unknown-icon">⚠️</span>
+                <h2>Produto Não Cadastrado</h2>
+            </div>
+
+            <div class="modal-code-display">
+                <div class="code" id="unknown-product-code">-</div>
+                <div class="desc">Código não encontrado na base de produtos</div>
+            </div>
+
+            <div class="form-group">
+                <label>Descrição (Opcional)</label>
+                <input type="text" id="unknown-desc" placeholder="Ex: Toalha Azul 70cm" maxlength="100">
+            </div>
+
+            <div class="form-group">
+                <label>Categoria (Opcional)</label>
+                <select id="unknown-category">
+                    <option value="">- Selecionar -</option>
+                    <option value="Cama">Cama</option>
+                    <option value="Banho">Banho</option>
+                    <option value="Mesa">Mesa</option>
+                    <option value="Decoração">Decoração</option>
+                    <option value="Outro">Outro</option>
+                </select>
+            </div>
+
+            <div class="form-group">
+                <label>Preço de Custo (Opcional)</label>
+                <input type="number" id="unknown-price" placeholder="Ex: 25.99" min="0" step="0.01">
+            </div>
+
+            <div class="form-group">
+                <label>Fornecedor (Opcional)</label>
+                <input type="text" id="unknown-supplier" placeholder="Ex: Bling, Fornecedor X" maxlength="100">
+            </div>
+
+            <div class="modal-note">
+                💡 <strong>Dica:</strong> Preencha os campos opcionais para facilitar o cadastro posterior no Bling. Você pode pular e continuar bipando — produto será marcado como não cadastrado.
+            </div>
+
+            <div class="modal-footer">
+                <button class="btn btn-secondary btn-modal" onclick="skipUnknownProduct()">PULAR</button>
+                <button class="btn btn-primary btn-modal" onclick="saveUnknownProduct()">SALVAR</button>
+            </div>
+        </div>
+    </div>
+
+    <script src="https://cdn.jsdelivr.net/npm/@zxing/library@latest/umd/index.min.js"></script>
+    <script src="https://cdn.jsdelivr.net/npm/xlsx@0.18.5/dist/xlsx.full.min.js"></script>
+    <script src="https://cdn.jsdelivr.net/npm/@supabase/supabase-js@2/dist/umd/supabase.js"></script>
+    <script>
+        // =====================================
+        // SUPABASE
+        // =====================================
+        const SUPABASE_URL = 'https://mphhlciodhnfnkisygko.supabase.co';
+        const SUPABASE_ANON_KEY = 'eyJhbGciOiJIUzI1NiIsInR5cCI6IkpXVCJ9.eyJpc3MiOiJzdXBhYmFzZSIsInJlZiI6Im1waGhsY2lvZGhuZm5raXN5Z2tvIiwicm9sZSI6ImFub24iLCJpYXQiOjE3OTA4MTU0NDksImV4cCI6MjEwNjM5MTQ0OX0.i-rqfl2-j-mRFKUkEUWpPQo2TWG4SN2up9n8DHoqKO8';
+        const sb = window.supabase.createClient(SUPABASE_URL, SUPABASE_ANON_KEY);
+
+        // =====================================
+        // ESTADO LOCAL
+        // =====================================
+        let device = {
+            activeInventoryId: null,
+            activeSectorId: null
+        };
+
+        let currentInventory = null;
+
+        let cache = {
+            sectors: [],
+            countings: []
+        };
+
+        // Estado do modal de não cadastrado
+        let pendingUnknownProduct = {
+            code: null,
+            isOpen: false
+        };
+
+        // =====================================
+        // INICIALIZAR
+        // =====================================
+        async function init() {
+            loadLocalState();
+            await loadProductDatabase();
+            await subscribeToUpdates();
+            await checkForActiveInventory();
+            updateCountingScreen();
+        }
+
+        // =====================================
+        // CARREGAR ESTADO LOCAL
+        // =====================================
+        function loadLocalState() {
+            const saved = localStorage.getItem('device-state');
+            if (saved) {
+                device = JSON.parse(saved);
+                const savedCache = localStorage.getItem('cache-state');
+                if (savedCache) {
+                    cache = JSON.parse(savedCache);
+                }
+            }
+        }
+
+        function saveLocalState() {
+            localStorage.setItem('device-state', JSON.stringify(device));
+            localStorage.setItem('cache-state', JSON.stringify(cache));
+        }
+
+        // =====================================
+        // BASE DE PRODUTOS
+        // =====================================
+        async function loadProductDatabase() {
+            const { data, error } = await sb.from('product_db')
+                .select('codigo_barras, sku, descricao')
+                .limit(10000);
+            if (error) {
+                console.error('Erro ao carregar produto_db:', error);
+                return;
+            }
+            window.productDb = {};
+            (data || []).forEach(p => {
+                window.productDb[p.codigo_barras] = { sku: p.sku, descricao: p.descricao };
+            });
+            console.log('✅ Base de produtos carregada:', Object.keys(window.productDb).length, 'itens');
+        }
+
+        // =====================================
+        // SUBSCRIÇÕES REALTIME
+        // =====================================
+        async function subscribeToUpdates() {
+            sb.from('sectors')
+                .on('*', payload => {
+                    if (payload.eventType === 'INSERT' || payload.eventType === 'UPDATE') {
+                        const idx = cache.sectors.findIndex(s => s.id === payload.new.id);
+                        if (idx >= 0) {
+                            cache.sectors[idx] = payload.new;
+                        } else {
+                            cache.sectors.push(payload.new);
+                        }
+                    } else if (payload.eventType === 'DELETE') {
+                        cache.sectors = cache.sectors.filter(s => s.id !== payload.old.id);
+                    }
+                    saveLocalState();
+                })
+                .subscribe();
+
+            sb.from('countings')
+                .on('*', payload => {
+                    if (payload.eventType === 'INSERT' || payload.eventType === 'UPDATE') {
+                        const idx = cache.countings.findIndex(c => c.id === payload.new.id);
+                        if (idx >= 0) {
+                            cache.countings[idx] = payload.new;
+                        } else {
+                            cache.countings.push(payload.new);
+                        }
+                    } else if (payload.eventType === 'DELETE') {
+                        cache.countings = cache.countings.filter(c => c.id !== payload.old.id);
+                    }
+                    saveLocalState();
+                    updateCountingScreen();
+                    renderViewSector();
+                })
+                .subscribe();
+        }
+
+        // =====================================
+        // VERIFICAR INVENTÁRIO ATIVO
+        // =====================================
+        async function checkForActiveInventory() {
+            if (!device.activeInventoryId) {
+                showScreen('screen-home');
+                return;
+            }
+
+            const { data, error } = await sb.from('inventarios')
+                .select('*')
+                .eq('id', device.activeInventoryId)
+                .single();
+
+            if (error || !data) {
+                device.activeInventoryId = null;
+                device.activeSectorId = null;
+                saveLocalState();
+                showScreen('screen-home');
+                return;
+            }
+
+            currentInventory = data;
+            const { data: sectors } = await sb.from('sectors')
+                .select('*')
+                .eq('inventario_id', device.activeInventoryId)
+                .order('ordem');
+            cache.sectors = sectors || [];
+
+            const { data: countings } = await sb.from('countings')
+                .select('*')
+                .eq('inventario_id', device.activeInventoryId);
+            cache.countings = countings || [];
+
+            saveLocalState();
+
+            if (!device.activeSectorId && cache.sectors.length > 0) {
+                device.activeSectorId = cache.sectors[0].id;
+                saveLocalState();
+            }
+
+            showScreen('screen-counting');
+            updateCountingScreen();
+        }
+
+        // =====================================
+        // NAVEGAÇÃO ENTRE TELAS
+        // =====================================
+        function showScreen(screenId) {
+            document.querySelectorAll('.screen').forEach(s => s.classList.remove('active'));
+            document.getElementById(screenId)?.classList.add('active');
+        }
+
+        function goHome() {
+            device.activeInventoryId = null;
+            device.activeSectorId = null;
+            saveLocalState();
+            showScreen('screen-home');
+        }
+
+        function goToNewInventory() {
+            document.getElementById('inv-name').value = '';
+            document.getElementById('inv-sectors').value = 'Setor 1\nSetor 2\nEstoque\nVitrine';
+            showScreen('screen-new');
+        }
+
+        function goToViewSector() {
+            renderViewSector();
+            showScreen('screen-view-sector');
+        }
+
+        function goToCountingFromView() {
+            showScreen('screen-counting');
+            updateCountingScreen();
+        }
+
+        function goToSummary() {
+            renderSummary();
+            showScreen('screen-summary');
+        }
+
+        function goToHistory() {
+            renderHistory();
+            showScreen('screen-history');
+        }
+
+        // =====================================
+        // CRIAR INVENTÁRIO
+        // =====================================
+        async function criarInventario() {
+            const nome = document.getElementById('inv-name').value.trim();
+            const setoresText = document.getElementById('inv-sectors').value.trim();
+
+            if (!nome) {
+                alert('❌ Digite um nome para o inventário');
+                return;
+            }
+
+            if (!setoresText) {
+                alert('❌ Adicione pelo menos um setor');
+                return;
+            }
+
+            const now = new Date();
+            const setores = setoresText.split('\n').map(s => s.trim()).filter(s => s);
+
+            const { data: inv, error: invError } = await sb.from('inventarios')
+                .insert({
+                    nome,
+                    data_inicio: now.toISOString().split('T')[0],
+                    hora_inicio: now.toTimeString().slice(0, 5),
+                    status: 'em_andamento'
+                })
+                .select()
+                .single();
+
+            if (invError) {
+                alert('❌ Erro ao criar inventário: ' + invError.message);
+                return;
+            }
+
+            device.activeInventoryId = inv.id;
+            currentInventory = inv;
+
+            const sectorsToInsert = setores.map((nome, idx) => ({
+                inventario_id: inv.id,
+                nome,
+                ordem: idx
+            }));
+
+            const { data: sects, error: sectError } = await sb.from('setores')
+                .insert(sectorsToInsert)
+                .select();
+
+            if (sectError) {
+                alert('❌ Erro ao criar setores: ' + sectError.message);
+                return;
+            }
+
+            cache.sectors = sects || [];
+            if (cache.sectors.length > 0) {
+                device.activeSectorId = cache.sectors[0].id;
+            }
+            cache.countings = [];
+
+            saveLocalState();
+            showScreen('screen-counting');
+            updateCountingScreen();
+        }
+
+        // =====================================
+        // SETUP BARCODE LISTENER
+        // =====================================
+        function setupBarcodeListener() {
+            document.getElementById('barcode-input').addEventListener('keypress', async (e) => {
+                if (e.key === 'Enter') {
+                    e.preventDefault();
+                    await handleBarcodeInput();
+                }
+            });
+
+            document.getElementById('barcode-input').focus();
+        }
+
+        // =====================================
+        // HANDLE BARCODE INPUT
+        // =====================================
+        async function handleBarcodeInput() {
+            const input = document.getElementById('barcode-input');
+            const barcode = input.value.trim();
+
+            if (!barcode) return;
+
+            if (!device.activeInventoryId || !device.activeSectorId) {
+                alert('❌ Selecione um inventário e setor');
+                input.value = '';
+                input.focus();
+                return;
+            }
+
+            input.value = '';
+
+            const id = 'cnt_' + Date.now() + '_' + Math.random().toString(36).slice(2);
+
+            const { data, error } = await sb.rpc('increment_counting', {
+                p_id: id,
+                p_inventario_id: device.activeInventoryId,
+                p_setor_id: device.activeSectorId,
+                p_codigo_barras: barcode
+            });
+
+            if (error) {
+                console.error('Erro ao salvar leitura:', error);
+                alert('❌ Erro ao salvar leitura: ' + error.message);
+                input.focus();
+                return;
+            }
+
+            // Verificar se produto é não cadastrado
+            const isUnknown = !window.productDb || !window.productDb[barcode];
+
+            upsertLocalCounting(data);
+            playFeedback();
+            updateCountingScreen();
+
+            // Se produto não cadastrado, abrir modal
+            if (isUnknown) {
+                openUnknownProductModal(barcode);
+            }
+
+            input.focus();
+        }
+
+        // =====================================
+        // MODAL PRODUTO NÃO CADASTRADO
+        // =====================================
+        function openUnknownProductModal(barcode) {
+            pendingUnknownProduct.code = barcode;
+            pendingUnknownProduct.isOpen = true;
+
+            document.getElementById('unknown-product-code').textContent = barcode;
+            document.getElementById('unknown-desc').value = '';
+            document.getElementById('unknown-category').value = '';
+            document.getElementById('unknown-price').value = '';
+            document.getElementById('unknown-supplier').value = '';
+
+            document.getElementById('modal-unknown-product').classList.add('active');
+
+            // Foco no primeiro campo
+            setTimeout(() => {
+                document.getElementById('unknown-desc').focus();
+            }, 100);
+        }
+
+        function skipUnknownProduct() {
+            closeUnknownProductModal();
+            document.getElementById('barcode-input').focus();
+        }
+
+        async function saveUnknownProduct() {
+            const code = pendingUnknownProduct.code;
+            const desc = document.getElementById('unknown-desc').value.trim();
+            const category = document.getElementById('unknown-category').value.trim();
+            const price = document.getElementById('unknown-price').value.trim();
+            const supplier = document.getElementById('unknown-supplier').value.trim();
+
+            // Guardar metadados em JSON
+            const metadados = {
+                descricao_manual: desc || null,
+                categoria: category || null,
+                preco_custo: price ? parseFloat(price) : null,
+                fornecedor: supplier || null,
+                preenchido_em: new Date().toISOString()
+            };
+
+            // Atualizar registro de contagem com metadados
+            const counting = cache.countings.find(c => c.codigo_barras === code && c.setor_id === device.activeSectorId);
+
+            if (counting) {
+                const { error } = await sb.from('countings')
+                    .update({
+                        nao_cadastrado: true,
+                        metadados_opcionals: metadados
+                    })
+                    .eq('id', counting.id);
+
+                if (error) {
+                    console.error('Erro ao salvar metadados:', error);
+                    alert('⚠️ Erro ao salvar informações: ' + error.message);
+                } else {
+                    counting.nao_cadastrado = true;
+                    counting.metadados_opcionals = metadados;
+                    saveLocalState();
+                    renderViewSector();
+                }
+            }
+
+            closeUnknownProductModal();
+            document.getElementById('barcode-input').focus();
+        }
+
+        function closeUnknownProductModal() {
+            document.getElementById('modal-unknown-product').classList.remove('active');
+            pendingUnknownProduct.isOpen = false;
+            pendingUnknownProduct.code = null;
+        }
+
+        // =====================================
+        // FEEDBACK (Som + Vibração)
+        // =====================================
+        function playFeedback(type = 'success') {
+            // Vibração
+            if (navigator.vibrate) {
+                navigator.vibrate(100);
+            }
+
+            // Som (beep - mantém igual para ambos)
+            try {
+                const audioContext = new (window.AudioContext || window.webkitAudioContext)();
+                const oscillator = audioContext.createOscillator();
+                const gainNode = audioContext.createGain();
+
+                oscillator.connect(gainNode);
+                gainNode.connect(audioContext.destination);
+
+                oscillator.frequency.value = 800; // Mantém 800Hz para ambos
+                oscillator.type = 'sine';
+
+                gainNode.gain.setValueAtTime(0.3, audioContext.currentTime);
+                gainNode.gain.exponentialRampToValueAtTime(0.01, audioContext.currentTime + 0.2);
+
+                oscillator.start(audioContext.currentTime);
+                oscillator.stop(audioContext.currentTime + 0.2);
+            } catch (e) {
+                console.log('Som não disponível:', e.message);
+            }
+        }
+
+        // =====================================
+        // ATUALIZAR TELA DE CONTAGEM
+        // =====================================
+        function updateCountingScreen() {
+            const sector = cache.sectors.find(s => s.id === device.activeSectorId);
+            document.getElementById('current-sector').textContent = sector ? sector.nome : '-';
+
+            const sectorCountings = cache.countings.filter(c => c.setor_id === device.activeSectorId);
+            const lastCounting = sectorCountings.length > 0
+                ? sectorCountings.reduce((a, b) => new Date(a.data_hora) > new Date(b.data_hora) ? a : b)
+                : null;
+
+            if (lastCounting) {
+                document.getElementById('last-product').innerHTML = `
+                    <div>${lastCounting.codigo_barras}</div>
+                    ${lastCounting.descricao ? `<div style="font-size: 14px; color: #7f8c8d; margin-top: 4px;">${lastCounting.descricao}${lastCounting.sku ? ' • SKU ' + lastCounting.sku : ''}</div>` : ''}
+                    ${lastCounting.nao_cadastrado ? '<span class="unknown-product-badge">⚠️ NÃO CADASTRADO</span>' : ''}
+                    <div style="font-size: 16px; font-weight: 700; color: var(--success); margin-top: 8px;">Qtd: ${lastCounting.quantidade}</div>
+                `;
+            } else {
+                document.getElementById('last-product').innerHTML = '<span style="color: #aaa;">Nenhum produto lido ainda</span>';
+            }
+
+            updateStats();
+        }
+
+        // =====================================
+        // ATUALIZAR STATS
+        // =====================================
+        function updateStats() {
+            const sectorCountings = cache.countings.filter(c => c.setor_id === device.activeSectorId);
+            const allCountings = cache.countings;
+
+            const skuCount = new Set(sectorCountings.map(c => c.codigo_barras)).size;
+            const pieceCount = sectorCountings.reduce((sum, c) => sum + (c.quantidade || 0), 0);
+            const sectorCount = cache.sectors.length;
+
+            document.getElementById('status-skus').textContent = skuCount;
+            document.getElementById('status-total').textContent = pieceCount;
+            document.getElementById('status-sectors').textContent = sectorCount;
+        }
+
+        // =====================================
+        // RENDER VIEW SECTOR
+        // =====================================
+        function renderViewSector() {
+            const sector = cache.sectors.find(s => s.id === device.activeSectorId);
+            const list = document.getElementById('sector-products-list');
+            list.innerHTML = '';
+
+            if (!sector) return;
+
+            document.getElementById('view-sector-name').textContent = sector.nome;
+
+            const searchInput = document.getElementById('sector-search');
+            const query = searchInput ? searchInput.value.trim().toLowerCase() : '';
+
+            let sectorCountings = cache.countings.filter(c => c.setor_id === device.activeSectorId);
+
+            if (query) {
+                sectorCountings = sectorCountings.filter(c =>
+                    c.codigo_barras.toLowerCase().includes(query) ||
+                    (c.sku && c.sku.toLowerCase().includes(query)) ||
+                    (c.descricao && c.descricao.toLowerCase().includes(query))
+                );
+            }
+
+            if (sectorCountings.length === 0) {
+                const msg = query ? 'Nenhum código encontrado' : 'Nenhum produto neste setor';
+                list.innerHTML = `<div class="empty-state"><div class="empty-state-icon">📭</div><p>${msg}</p></div>`;
+                return;
+            }
+
+            sectorCountings.forEach(counting => {
+                const div = document.createElement('div');
+                div.className = 'list-item product-item';
+                div.innerHTML = `
+                    <div class="list-item-content">
+                        <div class="list-item-title">
+                            ${counting.codigo_barras}
+                            ${counting.nao_cadastrado ? '<span class="unknown-product-badge">⚠️</span>' : ''}
+                        </div>
+                        ${counting.descricao ? `<div class="list-item-meta">${counting.descricao}${counting.sku ? ' • SKU ' + counting.sku : ''}</div>` : ''}
+                        <div class="list-item-meta">Lido em ${new Date(counting.data_hora).toLocaleTimeString('pt-BR')}</div>
+                    </div>
+                    <div class="product-row-bottom">
+                        <div class="qty-control">
+                            <button class="qty-btn minus" onclick="decreaseCounting('${counting.id}')">−</button>
+                            <input type="number" class="qty-input" value="${counting.quantidade}" min="0"
+                                onchange="setCountingQuantity('${counting.id}', this.value)">
+                            <button class="qty-btn plus" onclick="increaseCounting('${counting.id}')">+</button>
+                        </div>
+                        <button class="qty-btn delete" onclick="deleteCounting('${counting.id}')">🗑️</button>
+                    </div>
+                `;
+                list.appendChild(div);
+            });
+        }
+
+        // =====================================
+        // CORREÇÃO MANUAL
+        // =====================================
+        async function increaseCounting(id) {
+            const c = cache.countings.find(c => c.id === id);
+            if (!c) return;
+            const { data, error } = await sb.from('countings')
+                .update({ quantidade: c.quantidade + 1, data_hora: new Date().toISOString() })
+                .eq('id', id).select().single();
+            if (error) { alert('❌ Erro: ' + error.message); return; }
+            upsertLocalCounting(data);
+            renderViewSector();
+            updateCountingScreen();
+        }
+
+        async function decreaseCounting(id) {
+            const c = cache.countings.find(c => c.id === id);
+            if (!c) return;
+            if (c.quantidade - 1 <= 0) {
+                deleteCounting(id, true);
+                return;
+            }
+            const { data, error } = await sb.from('countings')
+                .update({ quantidade: c.quantidade - 1, data_hora: new Date().toISOString() })
+                .eq('id', id).select().single();
+            if (error) { alert('❌ Erro: ' + error.message); return; }
+            upsertLocalCounting(data);
+            renderViewSector();
+            updateCountingScreen();
+        }
+
+        async function setCountingQuantity(id, qty) {
+            const qtyNum = parseInt(qty) || 0;
+            if (qtyNum <= 0) {
+                deleteCounting(id, true);
+                return;
+            }
+            const { data, error } = await sb.from('countings')
+                .update({ quantidade: qtyNum, data_hora: new Date().toISOString() })
+                .eq('id', id).select().single();
+            if (error) { alert('❌ Erro: ' + error.message); return; }
+            upsertLocalCounting(data);
+            renderViewSector();
+            updateCountingScreen();
+        }
+
+        async function deleteCounting(id, silent = false) {
+            if (!silent && !confirm('Tem certeza que deseja excluir este produto?')) return;
+
+            const { error } = await sb.from('countings')
+                .delete()
+                .eq('id', id);
+            if (error) { alert('❌ Erro: ' + error.message); return; }
+            cache.countings = cache.countings.filter(c => c.id !== id);
+            saveLocalState();
+            renderViewSector();
+            updateCountingScreen();
+        }
+
+        // =====================================
+        // UPSERT LOCAL COUNTING
+        // =====================================
+        function upsertLocalCounting(data) {
+            const idx = cache.countings.findIndex(c => c.id === data.id);
+            if (idx >= 0) {
+                cache.countings[idx] = data;
+            } else {
+                cache.countings.push(data);
+            }
+            saveLocalState();
+        }
+
+        // =====================================
+        // RENDER SUMMARY
+        // =====================================
+        function renderSummary() {
+            const list = document.getElementById('summary-list');
+            list.innerHTML = '';
+
+            const bySector = {};
+            cache.countings.forEach(c => {
+                if (!bySector[c.setor_id]) {
+                    bySector[c.setor_id] = { skus: new Set(), pieces: 0 };
+                }
+                bySector[c.setor_id].skus.add(c.codigo_barras);
+                bySector[c.setor_id].pieces += c.quantidade || 0;
+            });
+
+            cache.sectors.forEach(sector => {
+                const stats = bySector[sector.id] || { skus: new Set(), pieces: 0 };
+                const div = document.createElement('div');
+                div.className = 'list-item';
+                div.innerHTML = `
+                    <div class="list-item-title">${sector.nome}</div>
+                    <div class="list-item-meta">${stats.skus.size} SKUs • ${stats.pieces} peças</div>
+                `;
+                list.appendChild(div);
+            });
+
+            const totalSkus = new Set(cache.countings.map(c => c.codigo_barras)).size;
+            const totalPieces = cache.countings.reduce((sum, c) => sum + (c.quantidade || 0), 0);
+
+            document.getElementById('summary-total').innerHTML = `
+                <div style="text-align: center; font-size: 18px;">
+                    <strong>Total Geral</strong><br>
+                    <div style="font-size: 24px; font-weight: 700; color: var(--primary); margin: 12px 0;">${totalSkus} SKUs • ${totalPieces} peças</div>
+                </div>
+            `;
+        }
+
+        // =====================================
+        // RENDER HISTORY
+        // =====================================
+        async function renderHistory() {
+            const { data, error } = await sb.from('inventarios')
+                .select('*')
+                .order('data_inicio', { ascending: false })
+                .limit(50);
+
+            const list = document.getElementById('history-list');
+            list.innerHTML = '';
+
+            if (error || !data || data.length === 0) {
+                list.innerHTML = '<div class="empty-state"><div class="empty-state-icon">📭</div><p>Nenhum inventário anterior</p></div>';
+                return;
+            }
+
+            data.forEach(inv => {
+                const div = document.createElement('div');
+                div.className = 'list-item';
+                div.innerHTML = `
+                    <div class="list-item-title">${inv.nome}</div>
+                    <div class="list-item-meta">${inv.data_inicio} às ${inv.hora_inicio} • ${inv.status}</div>
+                    <div style="margin-top: 12px; display: flex; gap: 8px;">
+                        <button class="btn btn-secondary btn-small" onclick="openInventory('${inv.id}')">ABRIR</button>
+                    </div>
+                `;
+                list.appendChild(div);
+            });
+        }
+
+        async function openInventory(invId) {
+            device.activeInventoryId = invId;
+            device.activeSectorId = null;
+            saveLocalState();
+            await checkForActiveInventory();
+        }
+
+        async function continuarInventario() {
+            const { data, error } = await sb.from('inventarios')
+                .select('*')
+                .eq('status', 'em_andamento')
+                .order('data_inicio', { ascending: false })
+                .limit(1)
+                .single();
+
+            if (error || !data) {
+                alert('❌ Nenhum inventário em andamento');
+                return;
+            }
+
+            device.activeInventoryId = data.id;
+            device.activeSectorId = null;
+            saveLocalState();
+            await checkForActiveInventory();
+        }
+
+        // =====================================
+        // MODAL SETOR
+        // =====================================
+        function showSectorModal() {
+            renderSectorList();
+            document.getElementById('modal-sector').classList.add('active');
+        }
+
+        function closeSectorModal() {
+            document.getElementById('modal-sector').classList.remove('active');
+        }
+
+        function renderSectorList() {
+            const list = document.getElementById('sector-list');
+            list.innerHTML = '';
+
+            cache.sectors.forEach(sector => {
+                const div = document.createElement('div');
+                div.className = 'list-item';
+                div.style.cursor = 'pointer';
+                if (sector.id === device.activeSectorId) {
+                    div.style.background = '#e3f2fd';
+                    div.style.borderLeftColor = var('--primary');
+                }
+                div.innerHTML = `<div class="list-item-title">${sector.nome}</div>`;
+                div.onclick = () => {
+                    device.activeSectorId = sector.id;
+                    saveLocalState();
+                    closeSectorModal();
+                    updateCountingScreen();
+                    document.getElementById('barcode-input').focus();
+                };
+                list.appendChild(div);
+            });
+        }
+
+        async function criarNovoSetor() {
+            const nome = prompt('Nome do novo setor:');
+            if (!nome) return;
+
+            const { data, error } = await sb.from('setores')
+                .insert({
+                    inventario_id: device.activeInventoryId,
+                    nome: nome.trim(),
+                    ordem: cache.sectors.length
+                })
+                .select()
+                .single();
+
+            if (error) {
+                alert('❌ Erro ao criar setor: ' + error.message);
+                return;
+            }
+
+            cache.sectors.push(data);
+            saveLocalState();
+            renderSectorList();
+        }
+
+        // =====================================
+        // MODAL CÂMERA
+        // =====================================
+        function showCameraModal() {
+            document.getElementById('modal-camera').classList.add('active');
+            startCameraScanning();
+        }
+
+        function closeCameraModal() {
+            stopCameraScanning();
+            document.getElementById('modal-camera').classList.remove('active');
+        }
+
+        let codeReader = null;
+        let mediaStream = null;
+        let cameraTrack = null;
+        let torchOn = false;
+        let barcodeDetector = null;
+        let detectionInterval = null;
+        let usingNativeDetector = false;
+
+        async function startCameraScanning() {
+            try {
+                mediaStream = await navigator.mediaDevices.getUserMedia({
+                    video: { facingMode: 'environment', width: { ideal: 1280 }, height: { ideal: 720 } }
+                });
+                cameraTrack = mediaStream.getVideoTracks()[0];
+
+                const video = document.getElementById('camera-video');
+                video.srcObject = mediaStream;
+                video.play();
+
+                if ('BarcodeDetector' in window) {
+                    usingNativeDetector = true;
+                    barcodeDetector = new window.BarcodeDetector({ formats: ['ean_13', 'ean_8', 'code_128', 'code_39', 'upc_a', 'upc_e'] });
+                    startNativeDetection(video);
+                } else if (window.ZXing && window.ZXing.BarcodeReader) {
+                    usingNativeDetector = false;
+                    codeReader = new window.ZXing.BarcodeReader();
+                    startZXingDetection(video);
+                }
+
+                checkTorchSupport();
+            } catch (err) {
+                alert('❌ Erro ao acessar câmera: ' + err.message);
+                closeCameraModal();
+            }
+        }
+
+        function checkTorchSupport() {
+            if (cameraTrack && cameraTrack.getCapabilities && cameraTrack.getCapabilities().torch) {
+                document.getElementById('btn-torch').style.display = 'flex';
+            }
+        }
+
+        async function toggleTorch() {
+            if (!cameraTrack) return;
+            try {
+                torchOn = !torchOn;
+                await cameraTrack.applyConstraints({ advanced: [{ torch: torchOn }] });
+                document.getElementById('btn-torch').textContent = torchOn ? '💡 Lanterna ON' : '🔦 Lanterna';
+            } catch (e) {
+                console.error('Erro ao controlar lanterna:', e);
+            }
+        }
+
+        async function startNativeDetection(video) {
+            if (!barcodeDetector) return;
+            detectionInterval = setInterval(async () => {
+                try {
+                    const barcodes = await barcodeDetector.detect(video);
+                    if (barcodes.length > 0) {
+                        const code = barcodes[0].rawValue;
+                        if (code) {
+                            document.getElementById('barcode-input').value = code;
+                            await handleBarcodeInput();
+                        }
+                    }
+                } catch (err) {
+                    console.error('Erro na detecção:', err);
+                }
+            }, 300);
+        }
+
+        async function startZXingDetection(video) {
+            if (!codeReader) return;
+            detectionInterval = setInterval(async () => {
+                try {
+                    const result = await codeReader.decodeOnce();
+                    if (result) {
+                        const code = result.text;
+                        if (code) {
+                            document.getElementById('barcode-input').value = code;
+                            await handleBarcodeInput();
+                        }
+                    }
+                } catch (err) {
+                    // Silencio erros de timeout
+                }
+            }, 300);
+        }
+
+        function stopCameraScanning() {
+            if (detectionInterval) clearInterval(detectionInterval);
+            if (mediaStream) {
+                mediaStream.getTracks().forEach(track => track.stop());
+                mediaStream = null;
+            }
+            if (codeReader) {
+                codeReader.reset();
+                codeReader = null;
+            }
+            torchOn = false;
+            document.getElementById('btn-torch').style.display = 'none';
+            const video = document.getElementById('camera-video');
+            if (video) video.srcObject = null;
+        }
+
+        // =====================================
+        // EXPORTAÇÃO
+        // =====================================
+        function getDetailedRows() {
+            const rows = [['Setor', 'Código de Barras', 'SKU', 'Descrição', 'Quantidade']];
+            cache.countings.forEach(c => {
+                const sector = cache.sectors.find(s => s.id === c.setor_id);
+                rows.push([
+                    sector ? sector.nome : '',
+                    c.codigo_barras,
+                    c.sku || '',
+                    c.descricao || '',
+                    c.quantidade
+                ]);
+            });
+            return rows;
+        }
+
+        function getConsolidatedRows() {
+            const rows = [['Código de Barras', 'SKU', 'Descrição', 'Quantidade Total']];
+            const byCode = {};
+            cache.countings.forEach(c => {
+                if (!byCode[c.codigo_barras]) {
+                    byCode[c.codigo_barras] = { sku: c.sku, descricao: c.descricao, qty: 0, nao_cadastrado: c.nao_cadastrado };
+                }
+                byCode[c.codigo_barras].qty += c.quantidade || 0;
+            });
+            Object.entries(byCode).forEach(([code, data]) => {
+                rows.push([code, data.sku || '', data.descricao || '', data.qty]);
+            });
+            return rows;
+        }
+
+        function getUnknownProductsRows() {
+            const rows = [['Código de Barras', 'Descrição Manual', 'Categoria', 'Preço Custo', 'Fornecedor', 'Quantidade']];
+            const unknownCodes = new Set();
+            cache.countings.filter(c => c.nao_cadastrado).forEach(c => {
+                if (!unknownCodes.has(c.codigo_barras)) {
+                    unknownCodes.add(c.codigo_barras);
+                    const meta = c.metadados_opcionals || {};
+                    const qty = cache.countings
+                        .filter(x => x.codigo_barras === c.codigo_barras)
+                        .reduce((sum, x) => sum + (x.quantidade || 0), 0);
+                    rows.push([
+                        c.codigo_barras,
+                        meta.descricao_manual || '',
+                        meta.categoria || '',
+                        meta.preco_custo || '',
+                        meta.fornecedor || '',
+                        qty
+                    ]);
+                }
+            });
+            return rows;
+        }
+
+        function downloadCSV(filename, rows) {
+            const csv = rows.map(r => r.map(cell => '"' + (cell || '').toString().replace(/"/g, '""') + '"').join(',')).join('\n');
+            const blob = new Blob([csv], { type: 'text/csv;charset=utf-8;' });
+            const link = document.createElement('a');
+            link.href = URL.createObjectURL(blob);
+            link.download = filename;
+            link.click();
+        }
+
+        function exportDetailedCSV() {
+            if (!device.activeInventoryId) { alert('❌ Nenhum inventário ativo'); return; }
+            const rows = getDetailedRows();
+            downloadCSV(`inventario_detalhado_${safeFileName(currentInventory ? currentInventory.nome : '')}.csv`, rows);
+        }
+
+        function exportConsolidatedCSV() {
+            if (!device.activeInventoryId) { alert('❌ Nenhum inventário ativo'); return; }
+            const rows = getConsolidatedRows();
+            downloadCSV(`inventario_consolidado_${safeFileName(currentInventory ? currentInventory.nome : '')}.csv`, rows);
+        }
+
+        function exportExcel() {
+            if (!device.activeInventoryId) { alert('❌ Nenhum inventário ativo'); return; }
+            if (typeof XLSX === 'undefined') { alert('❌ Biblioteca de Excel não carregou'); return; }
+
+            const detailedRows = getDetailedRows();
+            const consolidatedRows = getConsolidatedRows();
+            const unknownRows = getUnknownProductsRows();
+
+            const wb = XLSX.utils.book_new();
+            XLSX.utils.book_append_sheet(wb, XLSX.utils.aoa_to_sheet(detailedRows), 'Detalhado');
+            XLSX.utils.book_append_sheet(wb, XLSX.utils.aoa_to_sheet(consolidatedRows), 'Consolidado');
+            XLSX.utils.book_append_sheet(wb, XLSX.utils.aoa_to_sheet(unknownRows), 'Não Cadastrados');
+
+            XLSX.writeFile(wb, `inventario_${safeFileName(currentInventory ? currentInventory.nome : '')}.xlsx`);
+        }
+
+        function safeFileName(name) {
+            return (name || 'inventario').replace(/[^a-z0-9-]/gi, '_').toLowerCase();
+        }
+
+        // =====================================
+        // INICIALIZAR
+        // =====================================
+        setupBarcodeListener();
+        init();
+    </script>
+</body>
+</html>
