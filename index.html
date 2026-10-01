@@ -1053,17 +1053,14 @@
 
             // Verificar se produto é não cadastrado
             const isUnknown = !window.productDb || !window.productDb[barcode];
-            console.log('🔍 Código:', barcode, '| Desconhecido?', isUnknown, '| productDb:', window.productDb ? 'SIM' : 'NÃO');
 
             upsertLocalCounting(data);
             playFeedback();
             updateCountingScreen();
 
-            // Se produto não cadastrado, abrir modal
-            if (isUnknown) {
-                console.log('✅ Abrindo modal para:', barcode);
-                openUnknownProductModal(barcode);
-            }
+            // TESTE: Forçar modal a abrir sempre para diagnóstico
+            console.log('🧪 TESTE: Abrindo modal para:', barcode, '(isUnknown:', isUnknown, ')');
+            openUnknownProductModal(barcode);
 
             input.focus();
         }
