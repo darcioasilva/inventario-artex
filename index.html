@@ -1053,6 +1053,7 @@
 
             // Verificar se produto é não cadastrado
             const isUnknown = !window.productDb || !window.productDb[barcode];
+            console.log('🔍 Código:', barcode, '| Desconhecido?', isUnknown, '| productDb:', window.productDb ? 'SIM' : 'NÃO');
 
             upsertLocalCounting(data);
             playFeedback();
@@ -1060,6 +1061,7 @@
 
             // Se produto não cadastrado, abrir modal
             if (isUnknown) {
+                console.log('✅ Abrindo modal para:', barcode);
                 openUnknownProductModal(barcode);
             }
 
@@ -1070,6 +1072,7 @@
         // MODAL PRODUTO NÃO CADASTRADO
         // =====================================
         function openUnknownProductModal(barcode) {
+            console.log('🔔 openUnknownProductModal chamada para:', barcode);
             pendingUnknownProduct.code = barcode;
             pendingUnknownProduct.isOpen = true;
 
@@ -1079,7 +1082,12 @@
             document.getElementById('unknown-price').value = '';
             document.getElementById('unknown-supplier').value = '';
 
-            document.getElementById('modal-unknown-product').classList.add('active');
+            const modal = document.getElementById('modal-unknown-product');
+            console.log('Modal elemento existe?', modal ? 'SIM' : 'NÃO');
+            if (modal) {
+                modal.classList.add('active');
+                console.log('✅ Classe "active" adicionada à modal');
+            }
 
             // Foco no primeiro campo
             setTimeout(() => {
