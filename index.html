@@ -1009,9 +1009,9 @@
 
             const { data, error } = await sb.rpc('increment_counting', {
                 p_id: id,
-                p_inventario_id: device.activeInventoryId,
-                p_setor_id: device.activeSectorId,
-                p_codigo_barras: barcode
+                p_inv: device.activeInventoryId,
+                p_setor: device.activeSectorId,
+                p_barcode: barcode
             });
 
             if (error) {
