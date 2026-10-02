@@ -1347,7 +1347,13 @@
 
             const sectorCountings = cache.countings.filter(c => c.setor_id === device.activeSectorId);
             const lastCounting = sectorCountings.length > 0
-                ? sectorCountings.reduce((a, b) => new Date(a.data_hora) > new Date(b.data_hora) ? a : b)
+                ? sectorCountings.reduce((a, b) => {
+                    const da = getLeituraTimestamp(a);
+                    const db = getLeituraTimestamp(b);
+                    if (!da) return b;
+                    if (!db) return a;
+                    return da > db ? a : b;
+                })
                 : null;
 
             if (lastCounting) {
@@ -1383,6 +1389,25 @@
         // =====================================
         // RENDER VIEW SECTOR
         // =====================================
+        // Lê o horário da leitura tentando os possíveis nomes de coluna
+        // (o schema real da tabela contagens pode variar: data_hora,
+        // data_ultima_leitura ou data_primeira_leitura). Evita "Invalid Date"
+        // quando o campo esperado não existe ou vem vazio.
+        function getLeituraTimestamp(counting) {
+            const candidatos = [counting.data_hora, counting.data_ultima_leitura, counting.data_primeira_leitura, counting.created_at];
+            for (const valor of candidatos) {
+                if (!valor) continue;
+                const d = new Date(valor);
+                if (!isNaN(d.getTime())) return d;
+            }
+            return null;
+        }
+
+        function formatLeituraTime(counting) {
+            const d = getLeituraTimestamp(counting);
+            return d ? d.toLocaleTimeString('pt-BR') : '-';
+        }
+
         function renderViewSector() {
             const sector = cache.sectors.find(s => s.id === device.activeSectorId);
             const list = document.getElementById('sector-products-list');
@@ -1421,7 +1446,7 @@
                             ${counting.nao_cadastrado ? '<span class="unknown-product-badge">⚠️</span>' : ''}
                         </div>
                         ${counting.descricao ? `<div class="list-item-meta">${counting.descricao}${counting.sku ? ' • SKU ' + counting.sku : ''}</div>` : ''}
-                        <div class="list-item-meta">Lido em ${new Date(counting.data_hora).toLocaleTimeString('pt-BR')}</div>
+                        <div class="list-item-meta">Lido em ${formatLeituraTime(counting)}</div>
                     </div>
                     <div class="product-row-bottom">
                         <div class="qty-control">
