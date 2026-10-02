@@ -1905,15 +1905,21 @@
         // EXPORTAÇÃO
         // =====================================
         function getDetailedRows() {
-            const rows = [['Setor', 'Código de Barras', 'SKU', 'Descrição', 'Quantidade']];
+            const rows = [['Setor', 'Código de Barras', 'SKU', 'Descrição', 'Descrição Manual', 'Categoria', 'Preço Custo', 'Fornecedor', 'Quantidade', 'Status']];
             cache.countings.forEach(c => {
                 const sector = cache.sectors.find(s => s.id === c.setor_id);
+                const meta = c.metadados_opcionals || {};
                 rows.push([
                     sector ? sector.nome : '',
                     c.codigo_barras,
                     c.sku || '',
                     c.descricao || '',
-                    c.quantidade
+                    meta.descricao_manual || '',
+                    meta.categoria || '',
+                    meta.preco_custo || '',
+                    meta.fornecedor || '',
+                    c.quantidade,
+                    c.nao_cadastrado ? 'Não Cadastrado' : 'Cadastrado'
                 ]);
             });
             return rows;
