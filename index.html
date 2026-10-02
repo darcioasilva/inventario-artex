@@ -1472,7 +1472,7 @@
             const c = cache.countings.find(c => c.id === id);
             if (!c) return;
             const { data, error } = await sb.from('contagens')
-                .update({ quantidade: c.quantidade + 1, data_hora: new Date().toISOString() })
+                .update({ quantidade: c.quantidade + 1, data_ultima_leitura: new Date().toISOString() })
                 .eq('id', id).select().single();
             if (error) { alert('❌ Erro: ' + error.message); return; }
             upsertLocalCounting(data);
@@ -1488,7 +1488,7 @@
                 return;
             }
             const { data, error } = await sb.from('contagens')
-                .update({ quantidade: c.quantidade - 1, data_hora: new Date().toISOString() })
+                .update({ quantidade: c.quantidade - 1, data_ultima_leitura: new Date().toISOString() })
                 .eq('id', id).select().single();
             if (error) { alert('❌ Erro: ' + error.message); return; }
             upsertLocalCounting(data);
@@ -1503,7 +1503,7 @@
                 return;
             }
             const { data, error } = await sb.from('contagens')
-                .update({ quantidade: qtyNum, data_hora: new Date().toISOString() })
+                .update({ quantidade: qtyNum, data_ultima_leitura: new Date().toISOString() })
                 .eq('id', id).select().single();
             if (error) { alert('❌ Erro: ' + error.message); return; }
             upsertLocalCounting(data);
