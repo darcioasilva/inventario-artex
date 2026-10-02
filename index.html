@@ -1397,7 +1397,18 @@
             const candidatos = [counting.data_hora, counting.data_ultima_leitura, counting.data_primeira_leitura, counting.created_at];
             for (const valor of candidatos) {
                 if (!valor) continue;
-                const d = new Date(valor);
+                // O Supabase às vezes devolve o timestamp sem indicar o fuso
+                // (ex: "2026-10-02T02:18:00", sem "Z" ou "+00:00" no final).
+                // Sem esse marcador, o JavaScript assume que já é hora LOCAL
+                // e não faz nenhuma conversão — mas o valor salvo no banco é
+                // sempre UTC (gerado por now() no Postgres). Por isso, se não
+                // houver indicação de fuso no final da string, tratamos como UTC
+                // adicionando o "Z" antes de criar o Date.
+                let valorNormalizado = valor;
+                if (typeof valor === 'string' && !/[zZ]|[+-]\d{2}:?\d{2}$/.test(valor)) {
+                    valorNormalizado = valor + 'Z';
+                }
+                const d = new Date(valorNormalizado);
                 if (!isNaN(d.getTime())) return d;
             }
             return null;
