@@ -916,7 +916,9 @@
             device.activeInventoryId = null;
             device.activeSectorId = null;
             saveLocalState();
-            showScreen('screen-home');
+            // Reavalia o botão "Continuar" com base no estado atual
+            // (vai escondê-lo, já que acabamos de limpar o inventário ativo)
+            checkForActiveInventory();
         }
 
         // Volta para a tela inicial SEM encerrar o inventário em andamento
