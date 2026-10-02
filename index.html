@@ -1613,23 +1613,24 @@
         let detectionInterval = null;
         let usingNativeDetector = false;
 
-        // Evita contar o mesmo código várias vezes seguidas quando a câmera
-        // fica parada em cima do código de barras (detecção a cada 300ms)
-        let lastScanCode = null;
-        let lastScanTime = 0;
-        const SCAN_COOLDOWN_MS = 1500;
+        // Evita contar o mesmo produto várias vezes quando a câmera fica
+        // parada em cima do código de barras (detecção a cada 300ms).
+        // Trava TOTAL por 2s após cada leitura bem-sucedida (não importa
+        // se é o mesmo código ou outro) — mais simples e confiável do que
+        // só comparar o código, que falhava se o usuário segurasse a
+        // câmera parada por mais tempo que o cooldown.
+        let scanLocked = false;
+        const SCAN_COOLDOWN_MS = 2000;
 
         async function registerDetectedCode(code) {
-            if (!code) return;
-            const now = Date.now();
-            if (code === lastScanCode && (now - lastScanTime) < SCAN_COOLDOWN_MS) {
-                // Mesmo código detectado de novo muito rápido (câmera ainda mirando) → ignora
-                return;
-            }
-            lastScanCode = code;
-            lastScanTime = now;
+            if (!code || scanLocked) return;
+            scanLocked = true;
             document.getElementById('barcode-input').value = code;
-            await handleBarcodeInput();
+            try {
+                await handleBarcodeInput();
+            } finally {
+                setTimeout(() => { scanLocked = false; }, SCAN_COOLDOWN_MS);
+            }
         }
 
         async function startCameraScanning() {
@@ -1716,6 +1717,7 @@
                 codeReader = null;
             }
             torchOn = false;
+            scanLocked = false;
             document.getElementById('btn-torch').style.display = 'none';
             const video = document.getElementById('camera-video');
             if (video) video.srcObject = null;
