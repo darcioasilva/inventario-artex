@@ -825,13 +825,47 @@
 
         // =====================================
         // VERIFICAR INVENTÁRIO ATIVO
+        // (Apenas verifica e mostra o botão "Continuar" na tela inicial;
+        //  NUNCA navega sozinho para a contagem — isso só acontece quando
+        //  o usuário clica em "Continuar Inventário" ou abre um item do histórico)
         // =====================================
         async function checkForActiveInventory() {
+            const btnContinue = document.getElementById('btn-continue');
+
             if (!device.activeInventoryId) {
+                btnContinue.style.display = 'none';
                 showScreen('screen-home');
                 return;
             }
 
+            const { data, error } = await sb.from('inventarios')
+                .select('*')
+                .eq('id', device.activeInventoryId)
+                .single();
+
+            if (error || !data || data.status !== 'em_andamento') {
+                device.activeInventoryId = null;
+                device.activeSectorId = null;
+                saveLocalState();
+                btnContinue.style.display = 'none';
+                showScreen('screen-home');
+                return;
+            }
+
+            // Há um inventário em andamento salvo neste dispositivo:
+            // mostra o botão "Continuar" na tela inicial, mas deixa o
+            // usuário decidir — não entra automaticamente na contagem.
+            btnContinue.textContent = `▶️ Continuar: ${data.nome}`;
+            btnContinue.style.display = 'flex';
+            showScreen('screen-home');
+        }
+
+        // =====================================
+        // CARREGAR INVENTÁRIO E IR PARA A CONTAGEM
+        // (Chamada apenas após ação explícita do usuário:
+        //  clicar "Continuar Inventário" ou abrir um item do histórico)
+        // =====================================
+        async function loadAndShowInventory() {
             const { data, error } = await sb.from('inventarios')
                 .select('*')
                 .eq('id', device.activeInventoryId)
@@ -1390,7 +1424,7 @@
             device.activeInventoryId = invId;
             device.activeSectorId = null;
             saveLocalState();
-            await checkForActiveInventory();
+            await loadAndShowInventory();
         }
 
         async function continuarInventario() {
@@ -1409,7 +1443,7 @@
             device.activeInventoryId = data.id;
             device.activeSectorId = null;
             saveLocalState();
-            await checkForActiveInventory();
+            await loadAndShowInventory();
         }
 
         // =====================================
