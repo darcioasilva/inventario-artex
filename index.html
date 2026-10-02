@@ -969,6 +969,22 @@
                 return;
             }
 
+            // Impede nomes duplicados (comparação sem diferenciar maiúsculas/minúsculas)
+            const { data: existentes, error: checkError } = await sb.from('inventarios')
+                .select('id')
+                .ilike('nome', nome)
+                .limit(1);
+
+            if (checkError) {
+                alert('❌ Erro ao verificar nome do inventário: ' + checkError.message);
+                return;
+            }
+
+            if (existentes && existentes.length > 0) {
+                alert('❌ Já existe um inventário com esse nome. Escolha outro nome.');
+                return;
+            }
+
             const now = new Date();
             const setores = setoresText.split('\n').map(s => s.trim()).filter(s => s);
 
@@ -1418,13 +1434,35 @@
             data.forEach(inv => {
                 const div = document.createElement('div');
                 div.className = 'list-item';
-                div.innerHTML = `
-                    <div class="list-item-title">${inv.nome}</div>
-                    <div class="list-item-meta">${inv.data_inicio} às ${inv.hora_inicio} • ${inv.status}</div>
-                    <div style="margin-top: 12px; display: flex; gap: 8px;">
-                        <button class="btn btn-secondary btn-small" onclick="openInventory('${inv.id}')">ABRIR</button>
-                    </div>
-                `;
+
+                const title = document.createElement('div');
+                title.className = 'list-item-title';
+                title.textContent = inv.nome;
+
+                const meta = document.createElement('div');
+                meta.className = 'list-item-meta';
+                meta.textContent = `${inv.data_inicio} às ${inv.hora_inicio} • ${inv.status}`;
+
+                const btnRow = document.createElement('div');
+                btnRow.style.cssText = 'margin-top: 12px; display: flex; gap: 8px;';
+
+                const btnOpen = document.createElement('button');
+                btnOpen.className = 'btn btn-secondary btn-small';
+                btnOpen.textContent = 'ABRIR';
+                btnOpen.onclick = () => openInventory(inv.id);
+
+                const btnDelete = document.createElement('button');
+                btnDelete.className = 'btn btn-danger btn-small';
+                btnDelete.textContent = '🗑️ EXCLUIR';
+                btnDelete.onclick = () => deleteInventario(inv.id, inv.nome);
+
+                btnRow.appendChild(btnOpen);
+                btnRow.appendChild(btnDelete);
+
+                div.appendChild(title);
+                div.appendChild(meta);
+                div.appendChild(btnRow);
+
                 list.appendChild(div);
             });
         }
@@ -1434,6 +1472,44 @@
             device.activeSectorId = null;
             saveLocalState();
             await loadAndShowInventory();
+        }
+
+        async function deleteInventario(invId, nome) {
+            const confirmacao = confirm(
+                `Tem certeza que deseja excluir o inventário "${nome}"?\n\n` +
+                `Isso vai apagar TODAS as contagens e setores dele. Essa ação não pode ser desfeita.`
+            );
+            if (!confirmacao) return;
+
+            // Apaga as contagens do inventário primeiro (dependência)
+            const { error: contErr } = await sb.from('contagens').delete().eq('inventario_id', invId);
+            if (contErr) {
+                alert('❌ Erro ao excluir contagens: ' + contErr.message);
+                return;
+            }
+
+            // Apaga os setores do inventário
+            const { error: setErr } = await sb.from('setores').delete().eq('inventario_id', invId);
+            if (setErr) {
+                alert('❌ Erro ao excluir setores: ' + setErr.message);
+                return;
+            }
+
+            // Apaga o inventário em si
+            const { error: invErr } = await sb.from('inventarios').delete().eq('id', invId);
+            if (invErr) {
+                alert('❌ Erro ao excluir inventário: ' + invErr.message);
+                return;
+            }
+
+            // Se era o inventário ativo neste dispositivo, limpa a referência local
+            if (device.activeInventoryId === invId) {
+                device.activeInventoryId = null;
+                device.activeSectorId = null;
+                saveLocalState();
+            }
+
+            renderHistory();
         }
 
         async function continuarInventario() {
