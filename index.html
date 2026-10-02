@@ -1176,13 +1176,20 @@
             // o cadastro foi importado em outra aba/sessão sem recarregar esta página.
             const isUnknown = !!data.nao_cadastrado;
 
+            // Só trata como "novo não cadastrado" (bipe diferente + modal) na
+            // PRIMEIRA leitura desse código (quantidade acabou de virar 1).
+            // Da segunda leitura em diante, mesmo sendo não cadastrado, já foi
+            // reconhecido/decidido uma vez — bipa normal, sem reabrir o modal.
+            const isFirstScan = data.quantidade === 1;
+            const treatAsUnknown = isUnknown && isFirstScan;
+
             upsertLocalCounting(data);
-            playFeedback(isUnknown ? 'unknown' : 'success');
+            playFeedback(treatAsUnknown ? 'unknown' : 'success');
             updateCountingScreen();
 
-            // Só abre o modal de metadados quando o produto NÃO está
-            // cadastrado na base do Bling (comportamento da Etapa 11)
-            if (isUnknown) {
+            // Só abre o modal de metadados na primeira leitura de um código
+            // não cadastrado (comportamento da Etapa 11)
+            if (treatAsUnknown) {
                 openUnknownProductModal(barcode);
             }
 
@@ -1275,6 +1282,24 @@
         // type 'success' = produto cadastrado → bipe único agudo (800Hz)
         // type 'unknown' = produto NÃO cadastrado → bipe duplo grave (400Hz),
         // claramente diferente ao ouvido, inclusive usando leitor USB/Bluetooth
+
+        // Reutiliza UM único AudioContext em vez de criar um novo a cada bipe.
+        // Importante pro celular: navegadores móveis só liberam áudio depois de
+        // um toque direto do usuário, e a câmera dispara leituras sozinha (via
+        // temporizador) — sem esse "destravamento" antecipado, o som podia
+        // simplesmente não tocar ao usar a câmera no celular.
+        let sharedAudioContext = null;
+
+        function getAudioContext() {
+            if (!sharedAudioContext) {
+                sharedAudioContext = new (window.AudioContext || window.webkitAudioContext)();
+            }
+            if (sharedAudioContext.state === 'suspended') {
+                sharedAudioContext.resume().catch(() => {});
+            }
+            return sharedAudioContext;
+        }
+
         function playFeedback(type = 'success') {
             // Vibração (padrão diferente para reforçar o alerta de "não cadastrado")
             if (navigator.vibrate) {
@@ -1282,7 +1307,7 @@
             }
 
             try {
-                const audioContext = new (window.AudioContext || window.webkitAudioContext)();
+                const audioContext = getAudioContext();
 
                 if (type === 'unknown') {
                     playTone(audioContext, 400, 0, 0.12);
@@ -1702,6 +1727,11 @@
         // MODAL CÂMERA
         // =====================================
         function showCameraModal() {
+            // Destrava o áudio AQUI, dentro do toque direto do usuário no botão
+            // "CÂMERA" — necessário para o som funcionar depois, quando a câmera
+            // detectar códigos sozinha (sem toque do usuário em cada leitura)
+            try { getAudioContext(); } catch (e) { /* ignora se não suportado */ }
+
             document.getElementById('modal-camera').classList.add('active');
             startCameraScanning();
         }
