@@ -1170,8 +1170,11 @@
                 return;
             }
 
-            // Verificar se produto é não cadastrado
-            const isUnknown = !window.productDb || !window.productDb[barcode];
+            // Verificar se produto é não cadastrado.
+            // Usa o valor que o PRÓPRIO SERVIDOR acabou de calcular (data.nao_cadastrado),
+            // em vez da cópia local window.productDb — que pode estar desatualizada se
+            // o cadastro foi importado em outra aba/sessão sem recarregar esta página.
+            const isUnknown = !!data.nao_cadastrado;
 
             upsertLocalCounting(data);
             playFeedback();

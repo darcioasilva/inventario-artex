@@ -26,6 +26,13 @@
 -- câmera detecta o mesmo código em frames consecutivos antes do
 -- primeiro INSERT terminar (corrigido também no client com um
 -- cooldown de 1.5s entre leituras repetidas do mesmo código).
+--
+-- Corrigido novamente em 02/10/2026 (mesmo dia): o caminho de UPDATE
+-- (ON CONFLICT) não recalculava sku/descricao/nao_cadastrado — então
+-- um código bipado ANTES de importar o cadastro de produtos continuava
+-- marcado como "não cadastrado" para sempre, mesmo depois de importar
+-- a base e bipar de novo. Agora toda leitura (nova ou repetida)
+-- reconsulta product_db.
 -- ---------------------------------------------------------------------
 
 -- Caso precise recriar do zero (o Postgres não deixa trocar o tipo de
@@ -68,7 +75,10 @@ BEGIN
   ON CONFLICT (setor_id, codigo_barras)
   DO UPDATE SET
     quantidade = contagens.quantidade + 1,
-    data_ultima_leitura = now()
+    data_ultima_leitura = now(),
+    sku = v_sku,
+    descricao = v_descricao,
+    nao_cadastrado = v_nao_cadastrado
   RETURNING * INTO v_result;
 
   RETURN v_result;
