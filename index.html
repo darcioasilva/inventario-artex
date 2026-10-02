@@ -816,42 +816,11 @@
         }
 
         // =====================================
-        // SUBSCRIÇÕES REALTIME
+        // SUBSCRIÇÕES REALTIME (DESABILITADO)
         // =====================================
         async function subscribeToUpdates() {
-            sb.from('sectors')
-                .on('*', payload => {
-                    if (payload.eventType === 'INSERT' || payload.eventType === 'UPDATE') {
-                        const idx = cache.sectors.findIndex(s => s.id === payload.new.id);
-                        if (idx >= 0) {
-                            cache.sectors[idx] = payload.new;
-                        } else {
-                            cache.sectors.push(payload.new);
-                        }
-                    } else if (payload.eventType === 'DELETE') {
-                        cache.sectors = cache.sectors.filter(s => s.id !== payload.old.id);
-                    }
-                    saveLocalState();
-                })
-                .subscribe();
-
-            sb.from('countings')
-                .on('*', payload => {
-                    if (payload.eventType === 'INSERT' || payload.eventType === 'UPDATE') {
-                        const idx = cache.countings.findIndex(c => c.id === payload.new.id);
-                        if (idx >= 0) {
-                            cache.countings[idx] = payload.new;
-                        } else {
-                            cache.countings.push(payload.new);
-                        }
-                    } else if (payload.eventType === 'DELETE') {
-                        cache.countings = cache.countings.filter(c => c.id !== payload.old.id);
-                    }
-                    saveLocalState();
-                    updateCountingScreen();
-                    renderViewSector();
-                })
-                .subscribe();
+            // Realtime desabilitado - usando polling em vez disso
+            console.log('Realtime desabilitado');
         }
 
         // =====================================
