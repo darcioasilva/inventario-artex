@@ -1406,8 +1406,11 @@
         function formatLeituraTime(counting) {
             const d = getLeituraTimestamp(counting);
             if (!d) return '-';
-            const data = d.toLocaleDateString('pt-BR');
-            const hora = d.toLocaleTimeString('pt-BR', { hour: '2-digit', minute: '2-digit' });
+            // Fuso fixo (horário de Brasília), para não depender do relógio/fuso
+            // configurado em cada celular da equipe estar certo
+            const fuso = 'America/Sao_Paulo';
+            const data = d.toLocaleDateString('pt-BR', { timeZone: fuso });
+            const hora = d.toLocaleTimeString('pt-BR', { timeZone: fuso, hour: '2-digit', minute: '2-digit' });
             return `${data} ${hora}`;
         }
 
