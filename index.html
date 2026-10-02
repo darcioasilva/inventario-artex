@@ -815,6 +815,94 @@
                 window.productDb[p.codigo_barras] = { sku: p.sku, descricao: p.descricao };
             });
             console.log('✅ Base de produtos carregada:', Object.keys(window.productDb).length, 'itens');
+
+            const infoDiv = document.getElementById('product-db-info');
+            if (infoDiv) {
+                const count = Object.keys(window.productDb).length;
+                if (count > 0) {
+                    infoDiv.style.display = 'block';
+                    infoDiv.textContent = `📦 Base de produtos: ${count} itens cadastrados`;
+                }
+            }
+        }
+
+        function triggerImportProducts() {
+            document.getElementById('import-products-file').click();
+        }
+
+        async function handleImportProductsFile(event) {
+            const file = event.target.files[0];
+            if (!file) return;
+
+            const infoDiv = document.getElementById('product-db-info');
+            infoDiv.style.display = 'block';
+            infoDiv.textContent = '⏳ Lendo arquivo...';
+
+            try {
+                const data = await file.arrayBuffer();
+                const workbook = XLSX.read(data, { type: 'array' });
+                const firstSheetName = workbook.SheetNames[0];
+                const sheet = workbook.Sheets[firstSheetName];
+                const rows = XLSX.utils.sheet_to_json(sheet, { defval: '' });
+
+                if (!rows.length) {
+                    infoDiv.textContent = '❌ Arquivo vazio ou sem dados reconhecíveis';
+                    return;
+                }
+
+                // Detecta as colunas de forma flexível (case-insensitive, com/sem acento)
+                const normalize = (s) => s.toLowerCase().normalize('NFD').replace(/[̀-ͯ]/g, '');
+                const sampleKeys = Object.keys(rows[0]);
+                const findKey = (patterns) => sampleKeys.find(k =>
+                    patterns.some(p => normalize(k).includes(p))
+                );
+
+                const keyBarcode = findKey(['codigo de barras', 'codigo_barras', 'barcode', 'ean', 'codigo']);
+                const keySku = findKey(['sku', 'codigo interno', 'referencia']);
+                const keyDesc = findKey(['descricao', 'produto', 'nome']);
+
+                if (!keyBarcode) {
+                    infoDiv.textContent = '❌ Não encontrei a coluna de Código de Barras no arquivo (esperado: "Código de Barras")';
+                    return;
+                }
+
+                const produtos = rows
+                    .map(r => ({
+                        codigo_barras: String(r[keyBarcode] ?? '').trim(),
+                        sku: keySku ? String(r[keySku] ?? '').trim() : null,
+                        descricao: keyDesc ? String(r[keyDesc] ?? '').trim() : null
+                    }))
+                    .filter(p => p.codigo_barras);
+
+                if (!produtos.length) {
+                    infoDiv.textContent = '❌ Nenhum código de barras válido encontrado no arquivo';
+                    return;
+                }
+
+                infoDiv.textContent = `⏳ Importando ${produtos.length} produtos...`;
+
+                // Importa em lotes para não estourar o limite de payload do Supabase
+                const BATCH_SIZE = 500;
+                let importados = 0;
+                for (let i = 0; i < produtos.length; i += BATCH_SIZE) {
+                    const lote = produtos.slice(i, i + BATCH_SIZE);
+                    const { error } = await sb.from('product_db')
+                        .upsert(lote, { onConflict: 'codigo_barras' });
+                    if (error) {
+                        infoDiv.textContent = `❌ Erro ao importar: ${error.message} (${importados} produtos importados até aqui)`;
+                        return;
+                    }
+                    importados += lote.length;
+                    infoDiv.textContent = `⏳ Importando... ${importados} de ${produtos.length}`;
+                }
+
+                await loadProductDatabase();
+                infoDiv.textContent = `✅ ${importados} produtos importados/atualizados com sucesso!`;
+            } catch (err) {
+                infoDiv.textContent = '❌ Erro ao ler arquivo: ' + err.message;
+            } finally {
+                event.target.value = '';
+            }
         }
 
         // =====================================
