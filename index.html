@@ -1177,7 +1177,7 @@
             const isUnknown = !!data.nao_cadastrado;
 
             upsertLocalCounting(data);
-            playFeedback();
+            playFeedback(isUnknown ? 'unknown' : 'success');
             updateCountingScreen();
 
             // Só abre o modal de metadados quando o produto NÃO está
@@ -1272,32 +1272,45 @@
         // =====================================
         // FEEDBACK (Som + Vibração)
         // =====================================
+        // type 'success' = produto cadastrado → bipe único agudo (800Hz)
+        // type 'unknown' = produto NÃO cadastrado → bipe duplo grave (400Hz),
+        // claramente diferente ao ouvido, inclusive usando leitor USB/Bluetooth
         function playFeedback(type = 'success') {
-            // Vibração
+            // Vibração (padrão diferente para reforçar o alerta de "não cadastrado")
             if (navigator.vibrate) {
-                navigator.vibrate(100);
+                navigator.vibrate(type === 'unknown' ? [80, 70, 80] : 100);
             }
 
-            // Som (beep - mantém igual para ambos)
             try {
                 const audioContext = new (window.AudioContext || window.webkitAudioContext)();
-                const oscillator = audioContext.createOscillator();
-                const gainNode = audioContext.createGain();
 
-                oscillator.connect(gainNode);
-                gainNode.connect(audioContext.destination);
-
-                oscillator.frequency.value = 800; // Mantém 800Hz para ambos
-                oscillator.type = 'sine';
-
-                gainNode.gain.setValueAtTime(0.3, audioContext.currentTime);
-                gainNode.gain.exponentialRampToValueAtTime(0.01, audioContext.currentTime + 0.2);
-
-                oscillator.start(audioContext.currentTime);
-                oscillator.stop(audioContext.currentTime + 0.2);
+                if (type === 'unknown') {
+                    playTone(audioContext, 400, 0, 0.12);
+                    playTone(audioContext, 400, 0.16, 0.12);
+                } else {
+                    playTone(audioContext, 800, 0, 0.2);
+                }
             } catch (e) {
                 console.log('Som não disponível:', e.message);
             }
+        }
+
+        function playTone(audioContext, freq, startDelay, duration) {
+            const oscillator = audioContext.createOscillator();
+            const gainNode = audioContext.createGain();
+
+            oscillator.connect(gainNode);
+            gainNode.connect(audioContext.destination);
+
+            oscillator.frequency.value = freq;
+            oscillator.type = 'sine';
+
+            const startTime = audioContext.currentTime + startDelay;
+            gainNode.gain.setValueAtTime(0.3, startTime);
+            gainNode.gain.exponentialRampToValueAtTime(0.01, startTime + duration);
+
+            oscillator.start(startTime);
+            oscillator.stop(startTime + duration);
         }
 
         // =====================================
