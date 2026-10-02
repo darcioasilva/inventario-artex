@@ -846,13 +846,13 @@
             }
 
             currentInventory = data;
-            const { data: sectors } = await sb.from('sectors')
+            const { data: sectors } = await sb.from('setores')
                 .select('*')
                 .eq('inventario_id', device.activeInventoryId)
                 .order('ordem');
             cache.sectors = sectors || [];
 
-            const { data: countings } = await sb.from('countings')
+            const { data: countings } = await sb.from('contagens')
                 .select('*')
                 .eq('inventario_id', device.activeInventoryId);
             cache.countings = countings || [];
@@ -1087,7 +1087,7 @@
             const counting = cache.countings.find(c => c.codigo_barras === code && c.setor_id === device.activeSectorId);
 
             if (counting) {
-                const { error } = await sb.from('countings')
+                const { error } = await sb.from('contagens')
                     .update({
                         nao_cadastrado: true,
                         metadados_opcionals: metadados
@@ -1251,7 +1251,7 @@
         async function increaseCounting(id) {
             const c = cache.countings.find(c => c.id === id);
             if (!c) return;
-            const { data, error } = await sb.from('countings')
+            const { data, error } = await sb.from('contagens')
                 .update({ quantidade: c.quantidade + 1, data_hora: new Date().toISOString() })
                 .eq('id', id).select().single();
             if (error) { alert('❌ Erro: ' + error.message); return; }
@@ -1267,7 +1267,7 @@
                 deleteCounting(id, true);
                 return;
             }
-            const { data, error } = await sb.from('countings')
+            const { data, error } = await sb.from('contagens')
                 .update({ quantidade: c.quantidade - 1, data_hora: new Date().toISOString() })
                 .eq('id', id).select().single();
             if (error) { alert('❌ Erro: ' + error.message); return; }
@@ -1282,7 +1282,7 @@
                 deleteCounting(id, true);
                 return;
             }
-            const { data, error } = await sb.from('countings')
+            const { data, error } = await sb.from('contagens')
                 .update({ quantidade: qtyNum, data_hora: new Date().toISOString() })
                 .eq('id', id).select().single();
             if (error) { alert('❌ Erro: ' + error.message); return; }
@@ -1294,7 +1294,7 @@
         async function deleteCounting(id, silent = false) {
             if (!silent && !confirm('Tem certeza que deseja excluir este produto?')) return;
 
-            const { error } = await sb.from('countings')
+            const { error } = await sb.from('contagens')
                 .delete()
                 .eq('id', id);
             if (error) { alert('❌ Erro: ' + error.message); return; }
