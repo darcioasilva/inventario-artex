@@ -1089,9 +1089,11 @@
             playFeedback();
             updateCountingScreen();
 
-            // TESTE: Forçar modal a abrir sempre para diagnóstico
-            console.log('🧪 TESTE: Abrindo modal para:', barcode, '(isUnknown:', isUnknown, ')');
-            openUnknownProductModal(barcode);
+            // Só abre o modal de metadados quando o produto NÃO está
+            // cadastrado na base do Bling (comportamento da Etapa 11)
+            if (isUnknown) {
+                openUnknownProductModal(barcode);
+            }
 
             input.focus();
         }
